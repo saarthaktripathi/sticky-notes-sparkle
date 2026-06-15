@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { LogOut, Moon, Plus, StickyNote as StickyIcon, Sun } from "lucide-react";
@@ -212,6 +212,15 @@ export function StickyBoard() {
             </div>
             <span className="hidden text-lg font-semibold sm:inline">Sticky Board</span>
           </div>
+
+          <nav className="ml-2 flex items-center gap-1 rounded-lg bg-muted p-1 text-sm">
+            <Link to="/" className="rounded-md bg-background px-3 py-1.5 font-medium shadow-sm">
+              Notes
+            </Link>
+            <Link to="/tasks" className="rounded-md px-3 py-1.5 text-muted-foreground hover:text-foreground">
+              Tasks
+            </Link>
+          </nav>
 
           <div className="ml-2 flex-1">
             <SearchBar value={query} onChange={setQuery} />
