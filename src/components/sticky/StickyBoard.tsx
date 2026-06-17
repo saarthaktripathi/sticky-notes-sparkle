@@ -30,10 +30,11 @@ import { NoteCard } from "@/components/sticky/NoteCard";
 import { NoteForm } from "@/components/sticky/NoteForm";
 import { SearchBar } from "@/components/sticky/SearchBar";
 import { SortDropdown } from "@/components/sticky/SortDropdown";
+import { LocalSetupNotice } from "@/components/LocalSetupNotice";
 
 export function StickyBoard() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
   const qc = useQueryClient();
 
@@ -193,6 +194,10 @@ export function StickyBoard() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
+
+  if (error) {
+    return <LocalSetupNotice message={error} />;
+  }
 
   if (loading || !user) {
     return (

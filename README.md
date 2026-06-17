@@ -68,7 +68,13 @@ npm install
 
 ### 4. Create `.env`
 
-Create a `.env` file in the project root. Use the same public backend values from your Lovable project environment:
+Create a `.env` file in the project root. You can start from the included example:
+
+```bash
+cp .env.example .env
+```
+
+Then replace the placeholder values with the same public backend values from your Lovable project environment:
 
 ```env
 VITE_SUPABASE_URL=your_backend_url
@@ -86,6 +92,7 @@ Notes:
 - The non-`VITE_` values are used by the server/runtime side.
 - Do not place private service-role secrets in client-visible `VITE_` variables.
 - In Lovable, these values are already managed for preview and publishing.
+- After changing `.env`, stop the dev server and run `npm run dev` again. Vite only reads env files when it starts.
 
 ### 5. Start local development
 
