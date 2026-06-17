@@ -28,10 +28,11 @@ import {
 import { TaskCard } from "./TaskCard";
 import { TaskForm } from "./TaskForm";
 import { cn } from "@/lib/utils";
+import { LocalSetupNotice } from "@/components/LocalSetupNotice";
 
 export function TaskBoard() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
   const { theme, toggle } = useTheme();
   const qc = useQueryClient();
 
@@ -145,6 +146,10 @@ export function TaskBoard() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
+
+  if (error) {
+    return <LocalSetupNotice message={error} />;
+  }
 
   if (loading || !user) {
     return (

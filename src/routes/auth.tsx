@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent, SVGProps } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { StickyNote as StickyIcon } from "lucide-react";
@@ -9,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { LocalSetupNotice } from "@/components/LocalSetupNotice";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,43 +36,62 @@ function AuthPage() {
     if (!loading && user) navigate({ to: "/" });
   }, [user, loading, navigate]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Welcome back");
-    navigate({ to: "/" });
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) return toast.error(signInError.message);
+      toast.success("Welcome back");
+      navigate({ to: "/" });
+    } catch (signInError) {
+      toast.error(signInError instanceof Error ? signInError.message : "Sign in failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/` },
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Account created. You're signed in.");
-    navigate({ to: "/" });
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/` },
+      });
+      if (signUpError) return toast.error(signUpError.message);
+      toast.success("Account created. You're signed in.");
+      navigate({ to: "/" });
+    } catch (signUpError) {
+      toast.error(signUpError instanceof Error ? signUpError.message : "Sign up failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleGoogle = async () => {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error("Could not sign in with Google");
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/" });
+    } catch (googleError) {
+      toast.error(googleError instanceof Error ? googleError.message : "Could not sign in with Google");
+    } finally {
       setBusy(false);
-      toast.error("Could not sign in with Google");
-      return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/" });
   };
+
+  if (error) {
+    return <LocalSetupNotice message={error} />;
+  }
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background px-4 py-10">
@@ -180,7 +200,7 @@ function Field({
   );
 }
 
-function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
+function GoogleIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden {...props}>
       <path
